@@ -29,64 +29,75 @@ namespace ExcelFileUpload.API.Repository {
         }
 
         public List<T> ImportExcel<T>(Stream fileStream, string sheetName) {
-
             List<T> list = new List<T>();
             Type typeOfObject = typeof(T);
 
-            using(IXLWorkbook workbook = new XLWorkbook(fileStream)) {
+            using (IXLWorkbook workbook = new XLWorkbook(fileStream)) {
+                var worksheet = workbook.Worksheets.FirstOrDefault(w => w.Name == sheetName);
+                if (worksheet == null) throw new ArgumentException($"Sheet {sheetName} not found.");
 
-                var worksheet = workbook.Worksheets.Where(w=>w.Name==sheetName).First();
+                // Adding a Id column manually because missing in spreadsheet
+                var missingCell = worksheet.Cell(2, 1);
+                if(string.IsNullOrWhiteSpace(missingCell.Value.ToString())) {
+                    missingCell.Value = "Id";
+                }
+
                 var properties = typeOfObject.GetProperties();
+                 
+                // Converting columns to dictionary (value and index)
+                var columns = worksheet.Row(2).Cells().Select((v, i) => new { Value = v.Value, Index = i + 1 })
+                .ToDictionary(c => c.Value.ToString(), c => c.Index);
+                 
 
-                // Header column texts (starting from 2nd row)
-                var columns = worksheet.Row(2).Cells().Select((v, i) => new { Value = v.Value, Index = i + 1 });
-
-                // Define a dictionary to map property names to columen names
+                // Define a dictionary to map property names to column names
                 Dictionary<string, string> propertyNameToColumnName = new Dictionary<string, string> {
-                    {"Id", "Id"},
-                    {"OrgNumber", "Org Number"},
-                    {"Client", "Client"},
-                    {"Site", "Site"},
-                    {"Building", "Building"},
-                    {"Area", "Area"},
-                    {"ProcessName", "Process Name"},
-                    {"PositionTitle", "Position Title"},
-                    {"PositionDescription", "Position Description"},
-                    {"EmployeeNumber", "Employee Number (payroll number)"},
-                    {"EmployeeName", "Name"},
-                    {"EmployeeSurname", "Surname"},
-                    {"EmployeeDisplayName", "Known as Name"},
-                    {"EmployeeIDNumber", "ID Number"},
-                    {"BaseShift", "Base Shift"},
-                    {"NewBaseShift", "New Base Shift"},
-                    {"ShiftStartEndTime", "Shift Start & End Time"},
-                    {"ShiftType", "Shift Type: Variable Fixed Rotating"},
-                    {"SalaryWage", "Salary / Wage"},
-                    {"ReportsToPosition", "Reports to position"},
-                    {"TAManager", "T&A Manager"},
-                    {"PositionType","Position Type:  \r\nPermanent / Fixed Term Contract" },
-                    {"PositionActiveDate", "Position Active Date"},
-                    {"PoolManager", "Pool Manager"},
-                    {"TopSiteManager", "TopSite Manager"},
-                    {"PrismaUser", "PRISMA USER (YES/NO)"},
-                    {"EmailToCreatePrismaUsers", "Email / to create Prisma users"},
-                    {"ConfirmAttendance", "Confirm Attendance (YES/NO)"},
-                    {"WorkOnOrgchart", "Work on the Org Chart (YES/NO)"},
-                    {"CompleteParticipateWorkflow", "Complete/participate in workflow (YES/NO)"},
-                    {"MHERequest", "MHE Req."}
-                }; 
-                // Skip first row because header 
-                foreach (IXLRow row in worksheet.RowsUsed().Skip(1)){
+                      {"Id", "Id"},
+                      {"OrgNumber", "Org Number"},
+                      {"Client", "Client"},
+                      {"Site", "Site"},
+                      {"Building", "Building"},
+                      {"Area", "Area"},
+                      {"ProcessName", "Process Name"},
+                      {"PositionTitle", "Position Title"},
+                      {"PositionDescription", "Position Description"},
+                      {"EmployeeNumber", "Employee Number (payroll number)"},
+                      {"EmployeeName", "Name"},
+                      {"EmployeeSurname", "Surname"},
+                      {"EmployeeDisplayName", "Known as Name"},
+                      {"EmployeeIDNumber", "ID Number"},
+                      {"BaseShift", "Base Shift"},
+                      {"NewBaseShift", "New Base Shift"},
+                      {"ShiftStartEndTime", "Shift Start & End Time"},
+                      {"ShiftType", "Shift Type: Variable Fixed Rotating"},
+                      {"SalaryWage", "Salary / Wage"},
+                      {"ReportsToPosition", "Reports to position"},
+                      {"TAManager", "T&A Manager"},
+                      {"PositionType","Position Type:  \r\nPermanent / Fixed Term Contract" },
+                      {"PositionActiveDate", "Position Active Date"},
+                      {"PoolManager", "Pool Manager"},
+                      {"TopSiteManager", "TopSite Manager"},
+                      {"PrismaUser", "PRISMA USER (YES/NO)"},
+                      {"EmailToCreatePrismaUsers", "Email / to create Prisma users"},
+                      {"ConfirmAttendance", "Confirm Attendance (YES/NO)"},
+                      {"WorkOnOrgchart", "Work on the Org Chart (YES/NO)"},
+                      {"CompleteParticipateWorkflow", "Complete/participate in workflow (YES/NO)"},
+                      {"MHERequest", "MHE Req."}
+                  };
+
+                // Cache the column indices for properties
+                Dictionary<string, int> propertyToColumnIndex = properties
+                    .Where(p => propertyNameToColumnName.ContainsKey(p.Name))
+                    .ToDictionary(
+                        p => p.Name,
+                        p => columns.ContainsKey(propertyNameToColumnName[p.Name]) ? columns[propertyNameToColumnName[p.Name]] : 1
+                    );
+
+                foreach (IXLRow row in worksheet.RowsUsed().Skip(2)) { // Skip header rows
                     T obj = (T)Activator.CreateInstance(typeOfObject);
 
-                    foreach (var property in properties) { 
+                    foreach (var property in properties) {
 
-                        string columnName = propertyNameToColumnName[property.Name];
-
-                        // If i know that first column wont have a ID column 
-                        int colIndex = columns.FirstOrDefault(c => c.Value.ToString() == columnName)?.Index + 1 ?? 1;
-                         
-                        Console.WriteLine($"Column Name : {columnName} - Index {colIndex}");
+                        var colIndex = propertyToColumnIndex[property.Name];
 
                         var cellValue = row.Cell(colIndex).Value;
                         var targetType = property.PropertyType;
@@ -113,7 +124,7 @@ namespace ExcelFileUpload.API.Repository {
                             if (DateTime.TryParse(cellValue.ToString(), out dateTimeValue)) {
                                 convertedValue = dateTimeValue;
                             }
-                        } 
+                        }
 
                         // Add more conditions for other types as needed...
 
@@ -128,7 +139,6 @@ namespace ExcelFileUpload.API.Repository {
 
                     list.Add(obj);
                 }
-
             }
 
             return list;
