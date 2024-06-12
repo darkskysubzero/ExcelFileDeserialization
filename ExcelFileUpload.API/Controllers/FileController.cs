@@ -31,8 +31,15 @@ namespace ExcelFileUpload.API.Controllers {
                     FileSizeInBytes = fileDTO.FormFile.Length,
                 };
 
-                await fileRepository.Upload(file);
-                return Ok(file);
+                var products = await fileRepository.Upload(file);
+
+                if(products!=null) {
+
+                    return Ok(products);
+                }
+                else {
+                    return NotFound("No products found in the uploaded Excel file.");
+                }
             }
 
 

@@ -14,7 +14,7 @@ namespace ExcelFileUpload.API.Repository {
             this.httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<ExcelFile> Upload(ExcelFile file) {
+        public async Task<List<Product>?> Upload(ExcelFile file) {
               
             // Read file content into a memory stream
             using (MemoryStream memoryStream = new MemoryStream()) {
@@ -23,14 +23,9 @@ namespace ExcelFileUpload.API.Repository {
 
                 // Importing excel data from memory stream
                 var products = ImportExcel<Product>(memoryStream, "Products");
-
-                products.ForEach(x => Console.WriteLine(x.Name));
-
-                return file;
-            }
-             
-
-
+                 
+                return products;
+            } 
         }
 
         public List<T> ImportExcel<T>(Stream fileStream, string sheetName) {
@@ -43,15 +38,27 @@ namespace ExcelFileUpload.API.Repository {
                 var worksheet = workbook.Worksheets.Where(w=>w.Name==sheetName).First();
                 var properties = typeOfObject.GetProperties();
 
-                // Header column texts
-                var columns = worksheet.FirstRow().Cells().Select((v, i) => new { Value = v.Value, Index = i + 1 });
+                // Header column texts (starting from 2nd row)
+                var columns = worksheet.Row(2).Cells().Select((v, i) => new { Value = v.Value, Index = i + 1 });
 
-                // Skip first row because header
-                foreach(IXLRow row in worksheet.RowsUsed().Skip(1)){
+                // Define a dictionary to map property names to columen names
+                Dictionary<string, string> propertyNameToColumnName = new Dictionary<string, string> {
+                    {"Id","Id" },
+                    {"Name","Name"},
+                    {"Price","Price"},
+                    {"Units","Units" },
+                    {"Active","IsActive" }
+                }; 
+                // Skip first row because header 
+                foreach (IXLRow row in worksheet.RowsUsed().Skip(1)){
                     T obj = (T)Activator.CreateInstance(typeOfObject);
 
-                    foreach (var property in properties) {
-                        int colIndex = columns.SingleOrDefault(c => c.Value.ToString() == property.Name.ToString()).Index;
+                    foreach (var property in properties) { 
+
+                        string columnName = propertyNameToColumnName[property.Name];
+
+                        int colIndex = columns.SingleOrDefault(c => c.Value.ToString() == columnName).Index;
+
                         var cellValue = row.Cell(colIndex).Value;
                         var targetType = property.PropertyType;
 
@@ -78,14 +85,15 @@ namespace ExcelFileUpload.API.Repository {
                                 convertedValue = dateTimeValue;
                             }
                         }
+
                         // Add more conditions for other types as needed...
 
                         if (convertedValue != null) {
                             property.SetValue(obj, convertedValue);
                         }
                         else {
-                            // Handle unsupported types or failed conversions
-                            // You can log a warning or take other actions here
+                            // Handle unsupported types or failed conversions 
+                            Console.WriteLine("Conversion failed!");
                         }
                     }
 
@@ -106,5 +114,7 @@ namespace ExcelFileUpload.API.Repository {
 
             await file.FormFile.CopyToAsync(stream);
         }
+
+         
     }
 }
