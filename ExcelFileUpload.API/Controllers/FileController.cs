@@ -3,6 +3,7 @@ using ExcelFileUpload.API.Models.DTO;
 using ExcelFileUpload.API.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace ExcelFileUpload.API.Controllers {
     [Route("api/[controller]")]
@@ -18,6 +19,10 @@ namespace ExcelFileUpload.API.Controllers {
         [HttpPost]
         [Route("Upload")]
         public async Task<IActionResult> Upload([FromForm] ExcelFileDTO fileDTO) {
+
+            var watch = new Stopwatch();
+            watch.Start();
+
             // Validate file 
             ValidateFileUpload(fileDTO);
 
@@ -31,14 +36,22 @@ namespace ExcelFileUpload.API.Controllers {
                     FileSizeInBytes = fileDTO.FormFile.Length,
                 };
 
-                var products = await fileRepository.Upload(file);
+                var positions = await fileRepository.Upload(file);
 
-                if(products!=null) {
+                if(positions != null) {
 
-                    return Ok(products);
+                    watch.Stop();
+                    var completionTime = watch.ElapsedMilliseconds / 60000.0;
+
+                    var response = new UploadResponse {
+                        Positions = positions,
+                        CompletionTime = completionTime
+                    };
+
+                    return Ok(response);
                 }
                 else {
-                    return NotFound("No products found in the uploaded Excel file.");
+                    return NotFound("No positions found in the uploaded Excel file.");
                 }
             }
 

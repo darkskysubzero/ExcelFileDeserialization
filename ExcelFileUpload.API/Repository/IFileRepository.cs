@@ -3,6 +3,6 @@ using ExcelFileUpload.API.Models.Domain;
 
 namespace ExcelFileUpload.API.Repository {
     public interface IFileRepository {
-        Task<List<Product>?> Upload(ExcelFile file);
+        Task<List<Position>?> Upload(ExcelFile file);
     }
 }
