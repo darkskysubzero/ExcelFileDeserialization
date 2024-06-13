@@ -36,23 +36,24 @@ namespace ExcelFileUpload.API.Controllers {
                     FileSizeInBytes = fileDTO.FormFile.Length,
                 };
 
-                var positions = await fileRepository.Upload(file);
+                var sheetResponse = await fileRepository.Upload(file);
 
-                if(positions != null) {
+                return Ok(sheetResponse);
+                //if(sheetResponse.SheetData != null) {
 
-                    watch.Stop();
-                    var completionTime = watch.ElapsedMilliseconds / 60000.0;
+                //    watch.Stop();
+                //    var completionTime = watch.ElapsedMilliseconds / 60000.0;
 
-                    var response = new UploadResponse {
-                        Positions = positions,
-                        CompletionTime = completionTime
-                    };
+                //    var response = new UploadResponse {
+                //        Positions = positions,
+                //        CompletionTime = completionTime
+                //    };
 
-                    return Ok(response);
-                }
-                else {
-                    return NotFound("No positions found in the uploaded Excel file.");
-                }
+                //    return Ok(response);
+                //}
+                //else {
+                //    return NotFound("No positions found in the uploaded Excel file.");
+                //}
             }
 
 
