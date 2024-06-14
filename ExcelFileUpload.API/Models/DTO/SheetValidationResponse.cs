@@ -5,5 +5,6 @@ namespace ExcelFileUpload.API.Models.DTO {
         public List<Position>? SheetData { get; set; } = new List<Position>();
         public bool IsSheetValid { get; set; } = false;
         public List<string>? Errors { get; set; } = new List<string>();
+        public double ResponseTime { get; set; }
     }
 }

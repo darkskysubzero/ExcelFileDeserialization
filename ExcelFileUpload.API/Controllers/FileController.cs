@@ -1,4 +1,5 @@
-﻿using ExcelFileUpload.API.Models.Domain;
+﻿using ExcelFileUpload.API.Models;
+using ExcelFileUpload.API.Models.Domain;
 using ExcelFileUpload.API.Models.DTO;
 using ExcelFileUpload.API.Repository;
 using Microsoft.AspNetCore.Http;
@@ -38,22 +39,12 @@ namespace ExcelFileUpload.API.Controllers {
 
                 var sheetResponse = await fileRepository.Upload(file);
 
+                watch.Stop(); 
+
+                sheetResponse.ResponseTime = watch.ElapsedMilliseconds / 1000.00;
+
                 return Ok(sheetResponse);
-                //if(sheetResponse.SheetData != null) {
-
-                //    watch.Stop();
-                //    var completionTime = watch.ElapsedMilliseconds / 60000.0;
-
-                //    var response = new UploadResponse {
-                //        Positions = positions,
-                //        CompletionTime = completionTime
-                //    };
-
-                //    return Ok(response);
-                //}
-                //else {
-                //    return NotFound("No positions found in the uploaded Excel file.");
-                //}
+            
             }
 
 
