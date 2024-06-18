@@ -27,6 +27,7 @@ namespace ExcelFileUpload.API {
             builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
