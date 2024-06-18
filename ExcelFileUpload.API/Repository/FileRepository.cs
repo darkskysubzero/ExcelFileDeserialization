@@ -15,18 +15,40 @@ namespace ExcelFileUpload.API.Repository {
         }
 
         public async Task<List<Position>?> Upload(ExcelFile file) {
-              
-            // Read file content into a memory stream
-            using (MemoryStream memoryStream = new MemoryStream()) {
-                await file.FormFile.CopyToAsync(memoryStream);
-                memoryStream.Position = 0;
+            // Directory path
+            var directoryPath = Path.Combine(webHostEnvironment.ContentRootPath, "Files");
 
-                // Importing excel data from memory stream
-                var positions = ImportExcel<Position>(memoryStream, "Data");
-                 
-                return positions;
-            } 
+            try {
+                // Delete all files in the directory
+                var files = Directory.GetFiles(directoryPath);
+                foreach (var filePath in files) {
+                    File.Delete(filePath);
+                }
+
+                // Create a new file path
+                var localFilePath = Path.Combine(directoryPath, $"{file.FileName}");
+
+                // Open a FileStream to write the uploaded file to the server
+                using (FileStream fileStream = new FileStream(localFilePath, FileMode.Create)) {
+                    // Copy uploaded file content to FileStream asynchronously
+                    await file.FormFile.CopyToAsync(fileStream);
+
+                    // Reset fileStream position to the beginning
+                    fileStream.Seek(0, SeekOrigin.Begin);
+
+                    // Import Excel data from fileStream
+                    var positions = ImportExcel<Position>(fileStream, "Data");
+
+                    return positions;
+                }
+            }
+            catch (Exception ex) {
+                Console.WriteLine($"Error uploading or processing file: {ex.Message}");
+                return null;
+            }
         }
+
+
 
         public List<T> ImportExcel<T>(Stream fileStream, string sheetName) {
             List<T> list = new List<T>();
@@ -144,7 +166,7 @@ namespace ExcelFileUpload.API.Repository {
             return list;
         }
 
-        public async Task CopyFile(ExcelFile file) {
+        public async Task<FileStream> CopyFile(ExcelFile file) {
             // Creating a path
             var localFilePath = Path.Combine(webHostEnvironment.ContentRootPath, "Files", $"{file.FileName}{file.FileExtension}");
 
@@ -152,6 +174,8 @@ namespace ExcelFileUpload.API.Repository {
             using var stream = new FileStream(localFilePath, FileMode.Create);
 
             await file.FormFile.CopyToAsync(stream);
+
+            return stream;
         }
 
          

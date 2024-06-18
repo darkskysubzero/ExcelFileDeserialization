@@ -1,6 +1,10 @@
 ﻿@page "/"
 
 @page "/test"
+@using ExcelFileUpload.API.Models.DTO
+@using ExcelFileUpload.API.Models.Data
+@using System.Text.Json
+@using Newtonsoft.Json
 
 <div style="width:500px; margin:auto;">
 
@@ -10,8 +14,7 @@
                    WithCredentials="false"
                    Multiple="false"
                    OnSuccess="@OnUploadSuccess"
-                   OnError="@OnUploadError"
-                   />
+                   OnError="@OnUploadError" />
 
 
     <p>
@@ -24,16 +27,33 @@
     private List<string> AllowedFileTypes { get; set; } = new List<string>() { ".xlsx", ".pdf" };
     private int MaxFileSize { get; set; } = 10 * 1024 * 1024; // 10 MB
 
-    public string Message { get; set;  }
+    public List<Position>? Positions { get; set; }
 
-    private async Task OnUploadSuccess(UploadSuccessEventArgs args) {
+    public string Message { get; set; }
+
+
+    private void OnUploadSuccess(UploadSuccessEventArgs args) {
         string fileName = args.Files.First().Name;
         UploadOperationType operation = args.Operation;
         int statusCode = args.Request.Status;
         string statusMessage = args.Request.StatusText;
         string customMessage = args.Request.ResponseText;
+
+        // Deserialize JSON into UploadResponse object
+        UploadResponse response = JsonConvert.DeserializeObject<UploadResponse>(customMessage);
+         
+        if (response != null) {
+            // Accessing positions
+            List<Position> positions = response.Positions;
+ 
+            // Accessing completion time
+            double completionTime = response.CompletionTime;
+            Console.WriteLine($"Completion Time: {completionTime}");
+        }
+
         Message = "File uploaded!";
     }
+
 
     private void OnUploadError(UploadErrorEventArgs args) {
         string fileName = args.Files.First().Name;
