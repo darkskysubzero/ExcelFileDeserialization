@@ -4,6 +4,7 @@
 @using ExcelFileUpload.API.Models.DTO
 @using ExcelFileUpload.API.Models.Data
 @using System.Text.Json
+@using ExcelFileUpload.FE.Models
 @using Newtonsoft.Json
 
 <div style="width:500px; margin:auto;">
@@ -14,12 +15,11 @@
                    WithCredentials="false"
                    Multiple="false"
                    OnSuccess="@OnUploadSuccess"
-                   OnError="@OnUploadError" />
-
-
-    <p>
-        Response : @Message
-    </p>
+                   OnError="@OnUploadError"  />
+    
+    @if (!string.IsNullOrWhiteSpace(ErrorMessage)) {
+        <p>@ErrorMessage</p>
+    }
 </div>
 
 
@@ -29,7 +29,7 @@
 
     public List<Position>? Positions { get; set; }
 
-    public string Message { get; set; }
+    public string ErrorMessage { get; set; } = string.Empty;
 
 
     private void OnUploadSuccess(UploadSuccessEventArgs args) {
@@ -41,19 +41,17 @@
 
         // Deserialize JSON into UploadResponse object
         UploadResponse response = JsonConvert.DeserializeObject<UploadResponse>(customMessage);
-         
+
         if (response != null) {
             // Accessing positions
             List<Position> positions = response.Positions;
- 
+
             // Accessing completion time
             double completionTime = response.CompletionTime;
             Console.WriteLine($"Completion Time: {completionTime}");
         }
 
-        Message = "File uploaded!";
     }
-
 
     private void OnUploadError(UploadErrorEventArgs args) {
         string fileName = args.Files.First().Name;
@@ -61,6 +59,9 @@
         int statusCode = args.Request.Status;
         string statusMessage = args.Request.StatusText;
         string customMessage = args.Request.ResponseText;
-        Message = customMessage;
+        ErrorResponse response = JsonConvert.DeserializeObject<ErrorResponse>(customMessage);
+        ErrorMessage = string.Join(", ", response.File);
     }
+
+
 }

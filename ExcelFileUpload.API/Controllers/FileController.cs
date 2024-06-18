@@ -44,6 +44,7 @@ namespace ExcelFileUpload.API.Controllers {
                     FileSizeInBytes = fileDTO.FormFile.Length,
                 };
 
+                List<string> errors;
                 var positions = await fileRepository.Upload(file);
 
                 if(positions != null) {

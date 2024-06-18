@@ -2,6 +2,7 @@
 using ClosedXML;
 using ExcelFileUpload.API.Models.Data;
 using ClosedXML.Excel;
+using Azure;
 
 namespace ExcelFileUpload.API.Repository {
     public class FileRepository : IFileRepository {
@@ -37,7 +38,12 @@ namespace ExcelFileUpload.API.Repository {
                     fileStream.Seek(0, SeekOrigin.Begin);
 
                     // Import Excel data from fileStream
-                    var positions = ImportExcel<Position>(fileStream, "Data");
+                    List<string> errors;
+                    var positions = ImportExcel<Position>(fileStream, "Data", out errors);
+
+                    foreach (var e in errors) {
+                        Console.WriteLine(e);
+                    }
 
                     return positions;
                 }
@@ -48,15 +54,17 @@ namespace ExcelFileUpload.API.Repository {
             }
         }
 
-
-
-        public List<T> ImportExcel<T>(Stream fileStream, string sheetName) {
+        public List<T> ImportExcel<T>(Stream fileStream, string sheetName, out List<string> errors) {
             List<T> list = new List<T>();
+            errors = new List<string>();
             Type typeOfObject = typeof(T);
 
             using (IXLWorkbook workbook = new XLWorkbook(fileStream)) {
                 var worksheet = workbook.Worksheets.FirstOrDefault(w => w.Name == sheetName);
-                if (worksheet == null) throw new ArgumentException($"Sheet {sheetName} not found.");
+                if (worksheet == null) {
+                    errors.Add($"Sheet '{sheetName}' not found.");
+                    return list; // Return empty list if sheet not found
+                }
 
                 // Adding a Id column manually because missing in spreadsheet
                 var missingCell = worksheet.Cell(2, 1);
@@ -65,7 +73,15 @@ namespace ExcelFileUpload.API.Repository {
                 }
 
                 var properties = typeOfObject.GetProperties();
-                 
+
+                int columnCount = worksheet.LastColumnUsed().ColumnNumber();
+                // Validate column count
+                if (columnCount != 31) {
+                    errors.Add("Invalid Sheet: Sheet column count does not match expected 31 columns.");
+                    return list;
+                }
+
+
                 // Converting columns to dictionary (value and index)
                 var columns = worksheet.Row(2).Cells().Select((v, i) => new { Value = v.Value, Index = i + 1 })
                 .ToDictionary(c => c.Value.ToString(), c => c.Index);
