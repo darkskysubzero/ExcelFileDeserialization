@@ -2,7 +2,6 @@
 using ClosedXML;
 using ExcelFileUpload.API.Models.Data;
 using ClosedXML.Excel;
-using ExcelFileUpload.API.Models.DTO;
 
 namespace ExcelFileUpload.API.Repository {
     public class FileRepository : IFileRepository {
@@ -15,7 +14,7 @@ namespace ExcelFileUpload.API.Repository {
             this.httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<SheetValidationResponse> Upload(ExcelFile file) {
+        public async Task<List<Position>?> Upload(ExcelFile file) {
               
             // Read file content into a memory stream
             using (MemoryStream memoryStream = new MemoryStream()) {
@@ -23,32 +22,19 @@ namespace ExcelFileUpload.API.Repository {
                 memoryStream.Position = 0;
 
                 // Importing excel data from memory stream
-                var sheetResponse = ImportExcel(memoryStream, "Data");
+                var positions = ImportExcel<Position>(memoryStream, "Data");
                  
-                return sheetResponse;
+                return positions;
             } 
         }
 
-        public SheetValidationResponse ImportExcel(Stream fileStream, string sheetName) {
-            // Parsing Validations
-            /*
-             * 01 - Invalid sheet name
-             * 02 - Columns match
-             * 03 - Able to parse every row 
-             */
-
-            SheetValidationResponse response = new SheetValidationResponse();
-
-            Type typeOfObject = typeof(Position);
+        public List<T> ImportExcel<T>(Stream fileStream, string sheetName) {
+            List<T> list = new List<T>();
+            Type typeOfObject = typeof(T);
 
             using (IXLWorkbook workbook = new XLWorkbook(fileStream)) {
                 var worksheet = workbook.Worksheets.FirstOrDefault(w => w.Name == sheetName);
-
-                // 01 - Invalid sheet name
-                if (worksheet == null) { 
-                    response.Errors!.Add($"Invalid Sheet : Sheet  \"{sheetName}\" not found.");
-                    return response; 
-                }
+                if (worksheet == null) throw new ArgumentException($"Sheet {sheetName} not found.");
 
                 // Adding a Id column manually because missing in spreadsheet
                 var missingCell = worksheet.Cell(2, 1);
@@ -57,23 +43,10 @@ namespace ExcelFileUpload.API.Repository {
                 }
 
                 var properties = typeOfObject.GetProperties();
-
-                int columnCount = worksheet.LastColumnUsed().ColumnNumber();
-                  
-                // 02 - Column count does not match
-                if (columnCount != 31) {
-                    response.Errors!.Add("Invalid Sheet : Sheet column count does not match");
-                    return response;
-                }
-
+                 
                 // Converting columns to dictionary (value and index)
                 var columns = worksheet.Row(2).Cells().Select((v, i) => new { Value = v.Value, Index = i + 1 })
                 .ToDictionary(c => c.Value.ToString(), c => c.Index);
-
-
-                
-
-                
                  
 
                 // Define a dictionary to map property names to column names
@@ -119,12 +92,8 @@ namespace ExcelFileUpload.API.Repository {
                         p => columns.ContainsKey(propertyNameToColumnName[p.Name]) ? columns[propertyNameToColumnName[p.Name]] : 1
                     );
 
-                // 02 - checking if every row is converted properly
-                response.IsSheetValid = true;
-
                 foreach (IXLRow row in worksheet.RowsUsed().Skip(2)) { // Skip header rows
-                    Position obj = (Position)Activator.CreateInstance(typeOfObject);
-
+                    T obj = (T)Activator.CreateInstance(typeOfObject);
 
                     foreach (var property in properties) {
 
@@ -134,28 +103,26 @@ namespace ExcelFileUpload.API.Repository {
                         var targetType = property.PropertyType;
 
                         // Convert cell value to property type
-                        object convertedValue = null; 
-                         
-
+                        object convertedValue = null;
                         if (targetType == typeof(string)) {
-                            convertedValue = cellValue.ToString(); 
+                            convertedValue = cellValue.ToString();
                         }
                         else if (targetType == typeof(int)) {
                             int intValue;
                             if (int.TryParse(cellValue.ToString(), out intValue)) {
-                                convertedValue = intValue; 
+                                convertedValue = intValue;
                             }
                         }
                         else if (targetType == typeof(decimal)) {
                             decimal decimalValue;
                             if (decimal.TryParse(cellValue.ToString(), out decimalValue)) {
-                                convertedValue = decimalValue; 
+                                convertedValue = decimalValue;
                             }
                         }
                         else if (targetType == typeof(DateTime)) {
                             DateTime dateTimeValue;
                             if (DateTime.TryParse(cellValue.ToString(), out dateTimeValue)) {
-                                convertedValue = dateTimeValue; 
+                                convertedValue = dateTimeValue;
                             }
                         }
 
@@ -164,19 +131,17 @@ namespace ExcelFileUpload.API.Repository {
                         if (convertedValue != null) {
                             property.SetValue(obj, convertedValue);
                         }
-                        else { 
-                            // Handle unsupported types or failed conversions   
-                            // Create an an error message here
-                            response.Errors!.Add($"Conversion Failed : Row[{row.RowNumber()}] - Col[{colIndex}] Cell[{row.Cell(colIndex)}]")
-                            response.IsSheetValid = false;
+                        else {
+                            // Handle unsupported types or failed conversions 
+                            Console.WriteLine("Conversion failed!");
                         }
                     }
 
-                    response.SheetData!.Add(obj);
+                    list.Add(obj);
                 }
             }
 
-            return response;
+            return list;
         }
 
         public async Task CopyFile(ExcelFile file) {
