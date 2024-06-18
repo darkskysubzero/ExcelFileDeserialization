@@ -41,10 +41,12 @@ namespace ExcelFileUpload.API.Repository {
                     // Import Excel data from fileStream
                     List<string> errors;
                     var positions = ImportExcel<Position>(fileStream, "Data", out errors);
+                     
 
                     UploadResponse response = new UploadResponse() {
                         Positions = positions,
-                        Errors = errors
+                        Errors = errors,
+                        CompletionTime = 0.00
                     };
 
                     return response;

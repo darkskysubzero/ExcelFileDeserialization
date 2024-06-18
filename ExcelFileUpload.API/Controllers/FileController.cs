@@ -45,8 +45,11 @@ namespace ExcelFileUpload.API.Controllers {
                 };
                  
                 var response = await fileRepository.Upload(file);
+                
                 watch.Stop();
+                
                 var completionTime = watch.ElapsedMilliseconds / 60000.0;
+
                 response.CompletionTime = completionTime;
                      
                 return Ok(response);
