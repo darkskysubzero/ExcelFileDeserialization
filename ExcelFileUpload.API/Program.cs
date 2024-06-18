@@ -1,11 +1,6 @@
-using ExcelFileUpload.API.Models;
-using ExcelFileUpload.API.Models.Domain;
 using ExcelFileUpload.API.Repository;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog;
-using System.Security.Cryptography.Xml;
-using System.Text.Json.Serialization;
 
 namespace ExcelFileUpload.API {
     public class Program {
@@ -31,10 +26,8 @@ namespace ExcelFileUpload.API {
             builder.Services.AddScoped<IFileRepository, FileRepository>();
             builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            //builder.Services.AddDbContext<ExcelFileDbtestContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DatabaseConnection")));
-            builder.Services.AddScoped<IPositionRepository, PositionRepository>();
 
-            builder.Services.AddControllers().AddJsonOptions(x=>x.JsonSerializerOptions.ReferenceHandler=ReferenceHandler.Preserve);
+            builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

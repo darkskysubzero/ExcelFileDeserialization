@@ -1,11 +1,10 @@
-﻿using ClosedXML;
+﻿using ExcelFileUpload.API.Models.Domain;
+using ClosedXML;
 using ExcelFileUpload.API.Models.Data;
 using ClosedXML.Excel;
 using ExcelFileUpload.API.Models.DTO;
-using ExcelFileUpload.API.Models;
 
-namespace ExcelFileUpload.API.Repository
-{
+namespace ExcelFileUpload.API.Repository {
     public class FileRepository : IFileRepository {
 
         private readonly IWebHostEnvironment webHostEnvironment;
@@ -40,7 +39,7 @@ namespace ExcelFileUpload.API.Repository
 
             SheetValidationResponse response = new SheetValidationResponse();
 
-            Type typeOfObject = typeof(Models.Data.Position);
+            Type typeOfObject = typeof(Position);
 
             using (IXLWorkbook workbook = new XLWorkbook(fileStream)) {
                 var worksheet = workbook.Worksheets.FirstOrDefault(w => w.Name == sheetName);
@@ -58,9 +57,11 @@ namespace ExcelFileUpload.API.Repository
                 }
 
                 var properties = typeOfObject.GetProperties();
-                 
+
+                int columnCount = worksheet.LastColumnUsed().ColumnNumber();
+                  
                 // 02 - Column count does not match
-                if (worksheet.LastColumnUsed().ColumnNumber() != 31) {
+                if (columnCount != 31) {
                     response.Errors!.Add("Invalid Sheet : Sheet column count does not match");
                     return response;
                 }
@@ -68,6 +69,11 @@ namespace ExcelFileUpload.API.Repository
                 // Converting columns to dictionary (value and index)
                 var columns = worksheet.Row(2).Cells().Select((v, i) => new { Value = v.Value, Index = i + 1 })
                 .ToDictionary(c => c.Value.ToString(), c => c.Index);
+
+
+                
+
+                
                  
 
                 // Define a dictionary to map property names to column names
@@ -113,11 +119,11 @@ namespace ExcelFileUpload.API.Repository
                         p => columns.ContainsKey(propertyNameToColumnName[p.Name]) ? columns[propertyNameToColumnName[p.Name]] : 1
                     );
 
-                // 03 - checking if every row is converted properly
+                // 02 - checking if every row is converted properly
                 response.IsSheetValid = true;
 
                 foreach (IXLRow row in worksheet.RowsUsed().Skip(2)) { // Skip header rows
-                    Models.Data.Position obj = (Models.Data.Position)Activator.CreateInstance(typeOfObject);
+                    Position obj = (Position)Activator.CreateInstance(typeOfObject);
 
 
                     foreach (var property in properties) {
@@ -158,10 +164,10 @@ namespace ExcelFileUpload.API.Repository
                         if (convertedValue != null) {
                             property.SetValue(obj, convertedValue);
                         }
-                        else {
+                        else { 
                             // Handle unsupported types or failed conversions   
                             // Create an an error message here
-                            response.Errors!.Add($"Conversion Failed : Row[{row.RowNumber()}] - Col[{colIndex}] Cell[{row.Cell(colIndex)}]");
+                            response.Errors!.Add($"Conversion Failed : Row[{row.RowNumber()}] - Col[{colIndex}] Cell[{row.Cell(colIndex)}]")
                             response.IsSheetValid = false;
                         }
                     }
