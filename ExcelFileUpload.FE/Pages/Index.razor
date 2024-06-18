@@ -5,7 +5,9 @@
 @using ExcelFileUpload.API.Models.Data
 @using System.Text.Json
 @using ExcelFileUpload.FE.Models
+@using ExcelFileUpload.Models
 @using Newtonsoft.Json
+@using System.Collections.ObjectModel
 
 <div style="width:500px; margin:auto;">
 
@@ -23,6 +25,62 @@
 </div>
 
  
+<div class="grid">
+    <TelerikGrid Data="@GridData"
+                 EditMode="@GridEditMode.Incell"
+                 Pageable="true"
+                 Sortable="true"
+                 Resizable="true"
+                 Class="batch-grid"
+                >
+        <GridToolBarTemplate>
+            @{
+                <GridCommandButton Command="Add" Icon="@SvgIcon.Plus">Add Position</GridCommandButton>
+            }
+        </GridToolBarTemplate>
+        <GridSettings>
+            <GridValidationSettings Enabled="false"></GridValidationSettings>
+        </GridSettings>
+
+             
+        <GridColumns>
+            <GridCheckboxColumn />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "OrgNumber"))" Field="@nameof(BatchEditModel.OrgNumber)" Title="Org Number" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "Client"))" Field="@nameof(BatchEditModel.Client)" Title="Client" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "Site"))" Field="@nameof(BatchEditModel.Site)" Title="Site" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "Building"))" Field="@nameof(BatchEditModel.Building)" Title="Building" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "Area"))" Field="@nameof(BatchEditModel.Area)" Title="Area" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "ProcessName"))" Field="@nameof(BatchEditModel.ProcessName)" Title="Process Name" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "PositionTitle"))" Field="@nameof(BatchEditModel.PositionTitle)" Title="Position Title" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "PositionDescription"))" Field="@nameof(BatchEditModel.PositionDescription)" Title="Position Description" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "EmployeeNumber"))" Field="@nameof(BatchEditModel.EmployeeNumber)" Title="Employee Number"Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "EmployeeName"))" Field="@nameof(BatchEditModel.EmployeeName)" Title="Employee Name" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "EmployeeSurname"))" Field="@nameof(BatchEditModel.EmployeeSurname)" Title="Employee Surname" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "EmployeeDisplayName"))" Field="@nameof(BatchEditModel.EmployeeDisplayName)" Title="Employee Display Name" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "EmployeeIDNumber"))" Field="@nameof(BatchEditModel.EmployeeIDNumber)" Title="Employee Id Number" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "BaseShift"))" Field="@nameof(BatchEditModel.BaseShift)" Title="Base Shift" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "NewBaseShift"))" Field="@nameof(BatchEditModel.NewBaseShift)" Title="New Base Shift" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "ShiftStartEndTime"))" Field="@nameof(BatchEditModel.ShiftStartEndTime)" Title="Shift Start End Time" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "ShiftType"))" Field="@nameof(BatchEditModel.ShiftType)" Title="Shift Type" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "SalaryWage"))" Field="@nameof(BatchEditModel.SalaryWage)" Title="Salary Wage" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "ReportsToPosition"))" Field="@nameof(BatchEditModel.ReportsToPosition)" Title="Reports To Position" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "TAManager"))" Field="@nameof(BatchEditModel.TAManager)" Title="TA Manager" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "PositionType"))" Field="@nameof(BatchEditModel.PositionType)" Title="Position Type" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "PositionActiveDate"))" Field="@nameof(BatchEditModel.PositionActiveDate)" Title="Position Active Date" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "PoolManager"))" Field="@nameof(BatchEditModel.PoolManager)" Title="Pool Manager" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "TopSiteManager"))" Field="@nameof(BatchEditModel.TopSiteManager)" Title="Top Site Manager" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "PrismaUser"))" Field="@nameof(BatchEditModel.PrismaUser)" Title="Prisma User" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "EmailToCreatePrismaUsers"))" Field="@nameof(BatchEditModel.EmailToCreatePrismaUsers)" Title="Email To Create Prisma Users" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "ConfirmAttendance"))" Field="@nameof(BatchEditModel.ConfirmAttendance)" Title="Confirm Attendance" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "WorkOnOrgchart"))" Field="@nameof(BatchEditModel.WorkOnOrgchart)" Title="Work On Orgchart" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "CompleteParticipateWorkflow"))" Field="@nameof(BatchEditModel.CompleteParticipateWorkflow)" Title="Complete Participate Workflow" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "MHERequest"))" Field="@nameof(BatchEditModel.MHERequest)" Title="MHE Request" Width="150px" />
+
+        </GridColumns>
+
+
+    </TelerikGrid>
+</div>
 
 
 @code {
@@ -30,6 +88,8 @@
     private int MaxFileSize { get; set; } = 10 * 1024 * 1024; // 10 MB
 
     public List<Position>? Positions { get; set; }
+    public ObservableCollection<BatchEditModel> GridData { get; set; } = new ObservableCollection<BatchEditModel>();
+    public List<BatchEditModel> DataToUpdate { get; set; } = new List<BatchEditModel>();
 
     public string ErrorMessage { get; set; } = string.Empty;
 
@@ -45,8 +105,60 @@
         UploadResponse response = JsonConvert.DeserializeObject<UploadResponse>(customMessage);
 
         if (response != null) {
+
             // Accessing positions
-            List<Position> positions = response.Positions;
+            Positions = response.Positions;
+
+            // Mapping Position to PositionGridModel
+            var positionGridModels = new List<PositionGridModel?>();
+            foreach(var position in Positions) {
+                var positionGridModel = new PositionGridModel(){
+                        Id = position.Id,
+                        OrgNumber = position.OrgNumber,
+                        Client = position.Client,
+                        Site = position.Site,
+                        Building = position.Building,
+                        Area = position.Area,
+                        ProcessName = position.ProcessName,
+                        PositionTitle = position.PositionTitle,
+                        PositionDescription = position.PositionDescription,
+                        EmployeeNumber = position.EmployeeNumber,
+                        EmployeeName = position.EmployeeName,
+                        EmployeeSurname = position.EmployeeSurname,
+                        EmployeeDisplayName = position.EmployeeDisplayName,
+                        EmployeeIDNumber = position.EmployeeIDNumber,
+                        BaseShift = position.BaseShift,
+                        NewBaseShift = position.NewBaseShift,
+                        ShiftStartEndTime = position.ShiftStartEndTime,
+                        ShiftType = position.ShiftType,
+                        SalaryWage = position.SalaryWage,
+                        ReportsToPosition = position.ReportsToPosition,
+                        TAManager = position.TAManager,
+                        PositionType = position.PositionType,
+                        PositionActiveDate = position.PositionActiveDate,
+                        PoolManager = position.PoolManager,
+                        TopSiteManager = position.TopSiteManager,
+                        PrismaUser = position.PrismaUser,
+                        EmailToCreatePrismaUsers = position.EmailToCreatePrismaUsers,
+                        ConfirmAttendance = position.ConfirmAttendance,
+                        WorkOnOrgchart = position.WorkOnOrgchart,
+                        CompleteParticipateWorkflow = position.CompleteParticipateWorkflow,
+                        MHERequest = position.MHERequest
+                };
+                positionGridModels.Add(positionGridModel);
+            }
+
+
+            // List of overseravables
+            var listOfBatchItems = new ObservableCollection<BatchEditModel>();
+            foreach(var position in positionGridModels) {
+                var batchEditModel = new BatchEditModel(position);
+                listOfBatchItems.Add(batchEditModel);
+            }
+
+            GridData = listOfBatchItems;
+            DataToUpdate = listOfBatchItems.ToList();
+
 
             // Accessing completion time
             double completionTime = response.CompletionTime;
@@ -73,4 +185,36 @@
     }
 
 
+    public void OnCellRenderHandler(GridCellRenderEventArgs args, string field) {
+        BatchEditModel item = args.Item as BatchEditModel;
+       // args.Class = !item.IsNew && item.DirtyFields.Contains(field) == true ? "k-changed-cell" : string.Empty;
+    }
+
+   
+
 }
+
+
+<style>
+    .batch-grid td:first-child,
+    .batch-grid th:first-child {
+        text-align: center !important;
+    }
+
+    .batch-grid .k-new-row, .batch-grid .k-changed-cell {
+        background-color: rgb(94, 194, 50, 0.5) !important;
+    }
+
+        .batch-grid .k-new-row:hover {
+            background-color: rgb(94, 194, 50, 0.6) !important;
+        }
+
+    .batch-grid .k-deleted-row td:not(:first-child):not(.k-command-cell) {
+        outline: none;
+        cursor: default;
+        opacity: 0.6;
+        filter: grayscale(0.1);
+        pointer-events: none;
+        box-shadow: none;
+    }
+</style>

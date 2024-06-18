@@ -51,6 +51,8 @@ namespace ExcelFileUpload.API.Repository {
 
                     return response;
                 }
+
+
             }
             catch (Exception ex) {
                 Console.WriteLine($"Error uploading or processing file: {ex.Message}");
@@ -75,6 +77,10 @@ namespace ExcelFileUpload.API.Repository {
                 if(string.IsNullOrWhiteSpace(missingCell.Value.ToString())) {
                     missingCell.Value = "Id";
                 }
+
+                // Renaming cells
+                worksheet.Cell(2, 22).Value = "Position Type"; 
+                worksheet.Cell(2, 25).Value = "Top Site Manager";
 
                 var properties = typeOfObject.GetProperties();
 
@@ -114,10 +120,10 @@ namespace ExcelFileUpload.API.Repository {
                       {"SalaryWage", "Salary / Wage"},
                       {"ReportsToPosition", "Reports to position"},
                       {"TAManager", "T&A Manager"},
-                      {"PositionType","Position Type:  \r\nPermanent / Fixed Term Contract" },
+                      {"PositionType","Position Type" },
                       {"PositionActiveDate", "Position Active Date"},
                       {"PoolManager", "Pool Manager"},
-                      {"TopSiteManager", "TopSite Manager"},
+                      {"TopSiteManager", "Top Site Manager"},
                       {"PrismaUser", "PRISMA USER (YES/NO)"},
                       {"EmailToCreatePrismaUsers", "Email / to create Prisma users"},
                       {"ConfirmAttendance", "Confirm Attendance (YES/NO)"},
@@ -134,7 +140,7 @@ namespace ExcelFileUpload.API.Repository {
                         p => columns.ContainsKey(propertyNameToColumnName[p.Name]) ? columns[propertyNameToColumnName[p.Name]] : 1
                     );
 
-                foreach (IXLRow row in worksheet.RowsUsed().Skip(2)) { // Skip header rows
+                foreach (IXLRow row in worksheet.RowsUsed().Skip(1)) { // Skip header rows
                     T obj = (T)Activator.CreateInstance(typeOfObject);
 
                     foreach (var property in properties) {
