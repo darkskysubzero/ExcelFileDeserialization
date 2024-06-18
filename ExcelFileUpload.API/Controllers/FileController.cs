@@ -3,6 +3,7 @@ using ExcelFileUpload.API.Models.DTO;
 using ExcelFileUpload.API.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting.Internal;
 using System.Diagnostics;
 
 namespace ExcelFileUpload.API.Controllers {
@@ -16,12 +17,19 @@ namespace ExcelFileUpload.API.Controllers {
         }
 
 
+        
+
         [HttpPost]
         [Route("Upload")]
-        public async Task<IActionResult> Upload([FromForm] ExcelFileDTO fileDTO) {
+        public async Task<IActionResult> Upload(IFormFile files) {
 
             var watch = new Stopwatch();
             watch.Start();
+
+            var fileDTO = new ExcelFileDTO() {
+                FormFile = files,
+                FileName = files.FileName
+            };
 
             // Validate file 
             ValidateFileUpload(fileDTO);

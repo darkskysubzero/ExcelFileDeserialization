@@ -1,0 +1,46 @@
+﻿@page "/"
+
+@page "/test"
+
+<div style="width:500px; margin:auto;">
+
+    <TelerikUpload SaveUrl="https://localhost:7015/api/File/Upload"
+                   AllowedExtensions="@AllowedFileTypes"
+                   MaxFileSize="@MaxFileSize"
+                   WithCredentials="false"
+                   Multiple="false"
+                   OnSuccess="@OnUploadSuccess"
+                   OnError="@OnUploadError"
+                   />
+
+
+    <p>
+        Response : @Message
+    </p>
+</div>
+
+
+@code {
+    private List<string> AllowedFileTypes { get; set; } = new List<string>() { ".xlsx", ".pdf" };
+    private int MaxFileSize { get; set; } = 10 * 1024 * 1024; // 10 MB
+
+    public string Message { get; set;  }
+
+    private async Task OnUploadSuccess(UploadSuccessEventArgs args) {
+        string fileName = args.Files.First().Name;
+        UploadOperationType operation = args.Operation;
+        int statusCode = args.Request.Status;
+        string statusMessage = args.Request.StatusText;
+        string customMessage = args.Request.ResponseText;
+        Message = "File uploaded!";
+    }
+
+    private void OnUploadError(UploadErrorEventArgs args) {
+        string fileName = args.Files.First().Name;
+        UploadOperationType operation = args.Operation;
+        int statusCode = args.Request.Status;
+        string statusMessage = args.Request.StatusText;
+        string customMessage = args.Request.ResponseText;
+        Message = customMessage;
+    }
+}
