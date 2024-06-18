@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExcelFileUpload.API", "Exce
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelFileUpload.FE", "ExcelFileUpload.FE\ExcelFileUpload.FE.csproj", "{4B9D3A1D-9B93-48C3-8AD8-13A4982E462C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExcelFileUpload.Models", "ExcelFileUpload.Models\ExcelFileUpload.Models.csproj", "{5E76F1AE-5A34-4C59-B068-53D858D5CE9D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{4B9D3A1D-9B93-48C3-8AD8-13A4982E462C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B9D3A1D-9B93-48C3-8AD8-13A4982E462C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B9D3A1D-9B93-48C3-8AD8-13A4982E462C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E76F1AE-5A34-4C59-B068-53D858D5CE9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E76F1AE-5A34-4C59-B068-53D858D5CE9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E76F1AE-5A34-4C59-B068-53D858D5CE9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E76F1AE-5A34-4C59-B068-53D858D5CE9D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

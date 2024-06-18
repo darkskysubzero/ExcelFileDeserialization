@@ -2,7 +2,8 @@
 
 namespace ExcelFileUpload.API.Models.DTO {
     public class UploadResponse {
-        public List<Position>? Positions { get; set; } = new List<Position>();
+        public List<Position>? Positions { get; set; }
+        public List<string>? Errors { get; set; }
         public double CompletionTime { get; set; }
     }
 }

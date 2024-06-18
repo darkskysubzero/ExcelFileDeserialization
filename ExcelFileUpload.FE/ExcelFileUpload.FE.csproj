@@ -13,4 +13,8 @@
     <PackageReference Include="Telerik.UI.for.Blazor" Version="6.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ExcelFileUpload.Models\ExcelFileUpload.Models.csproj" />
+  </ItemGroup>
+
 </Project>

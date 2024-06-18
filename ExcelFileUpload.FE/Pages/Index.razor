@@ -49,7 +49,12 @@
             // Accessing completion time
             double completionTime = response.CompletionTime;
             Console.WriteLine($"Completion Time: {completionTime}");
-        }
+
+            // Handling sheet errors (handles errors that are related to parsing)
+            if (response.Errors.Count > 0) {
+                ErrorMessage = string.Join(", ", response.Errors);
+            }
+        } 
 
     }
 
@@ -59,6 +64,8 @@
         int statusCode = args.Request.Status;
         string statusMessage = args.Request.StatusText;
         string customMessage = args.Request.ResponseText;
+
+        // This handles file based errors
         ErrorResponse response = JsonConvert.DeserializeObject<ErrorResponse>(customMessage);
         ErrorMessage = string.Join(", ", response.File);
     }

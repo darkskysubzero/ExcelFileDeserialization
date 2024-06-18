@@ -27,4 +27,8 @@
     <Folder Include="Logs\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ExcelFileUpload.Models\ExcelFileUpload.Models.csproj" />
+  </ItemGroup>
+
 </Project>

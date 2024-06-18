@@ -3,6 +3,7 @@ using ClosedXML;
 using ExcelFileUpload.API.Models.Data;
 using ClosedXML.Excel;
 using Azure;
+using ExcelFileUpload.API.Models.DTO;
 
 namespace ExcelFileUpload.API.Repository {
     public class FileRepository : IFileRepository {
@@ -15,7 +16,7 @@ namespace ExcelFileUpload.API.Repository {
             this.httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<List<Position>?> Upload(ExcelFile file) {
+        public async Task<UploadResponse> Upload(ExcelFile file) {
             // Directory path
             var directoryPath = Path.Combine(webHostEnvironment.ContentRootPath, "Files");
 
@@ -41,11 +42,12 @@ namespace ExcelFileUpload.API.Repository {
                     List<string> errors;
                     var positions = ImportExcel<Position>(fileStream, "Data", out errors);
 
-                    foreach (var e in errors) {
-                        Console.WriteLine(e);
-                    }
+                    UploadResponse response = new UploadResponse() {
+                        Positions = positions,
+                        Errors = errors
+                    };
 
-                    return positions;
+                    return response;
                 }
             }
             catch (Exception ex) {

@@ -1,8 +1,9 @@
 ﻿using ExcelFileUpload.API.Models.Data;
 using ExcelFileUpload.API.Models.Domain;
+using ExcelFileUpload.API.Models.DTO;
 
 namespace ExcelFileUpload.API.Repository {
     public interface IFileRepository {
-        Task<List<Position>?> Upload(ExcelFile file);
+        Task<UploadResponse> Upload(ExcelFile file);
     }
 }
