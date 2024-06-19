@@ -38,14 +38,17 @@ namespace ExcelFileUpload.API.Repository {
                     // Reset fileStream position to the beginning
                     fileStream.Seek(0, SeekOrigin.Begin);
 
-                    // Import Excel data from fileStream
+                    // Import Excel data from fileStream and checkinf errors
                     List<string> errors;
+
                     var positions = ImportExcel<Position>(fileStream, "Data", out errors);
-                     
+
 
                     UploadResponse response = new UploadResponse() {
                         Positions = positions,
                         Errors = errors,
+                        DataErrors = GetDataErrors(positions),
+                        IsFileValid = !(errors.Count()>0 || GetDataErrors(positions).Count()>0),
                         CompletionTime = 0.00
                     };
 
@@ -192,18 +195,88 @@ namespace ExcelFileUpload.API.Repository {
             return list;
         }
 
-        public async Task<FileStream> CopyFile(ExcelFile file) {
-            // Creating a path
-            var localFilePath = Path.Combine(webHostEnvironment.ContentRootPath, "Files", $"{file.FileName}{file.FileExtension}");
 
-            // File stream
-            using var stream = new FileStream(localFilePath, FileMode.Create);
+        public Dictionary<int, string> GetDataErrors(List<Position>? positions) {
+            var errors = new Dictionary<int, string>();
 
-            await file.FormFile.CopyToAsync(stream);
+            // Checking if it has duplicates
+            List<int> duplicateIds;
+            if(HasDuplicateIds(positions, out duplicateIds)) {
+                foreach(var id in duplicateIds) {
+                    errors.Add(id, "Duplicate ID");
+                }
+            }
 
-            return stream;
+
+            // Checking if it has 1 topsite manager
+            if (HasOneTopSiteManager(positions)>1) {
+                errors.Add(-1, "More than one TopSiteManager, can only have one!");
+            }else if (HasOneTopSiteManager(positions) == 0) {
+                errors.Add(-1, "Missing TopSiteManager");
+            }
+
+
+            foreach(var position in positions) {
+
+                // Checking of orgnumber is empty
+                if (string.IsNullOrWhiteSpace(position.OrgNumber)) {
+                    // If the ID is already in errors dictionary due to duplicates,
+                    // append "Missing OrgNumber" to the existing error message.
+                    if (errors.ContainsKey(position.Id)) {
+                        errors[position.Id] += ", Missing OrgNumber";
+                    }
+                    else {
+                        errors.Add(position.Id, "Missing OrgNumber");
+                    }
+                }
+
+
+                // Can validate more
+            }
+
+            return errors;
         }
 
+
+        public bool HasDuplicateIds(List<Position>? positions, out List<int> duplicateIds) {
+            duplicateIds = new List<int>();
+
+            // Group positions by Id and filter groups with more than one item
+            var duplicates = positions
+                .Where(p => p != null) // Filter out null positions if any
+                .GroupBy(p => p.Id)
+                .Where(g => g.Count() > 1);
+
+            // Check if there are any duplicates
+            bool hasDuplicates = duplicates.Any();
+
+            // If there are duplicates, populate duplicateIds list
+            if (hasDuplicates) {
+                foreach (var group in duplicates) {
+                    duplicateIds.Add(group.Key); // Add the ID which is duplicated
+                }
+            }
+
+            return hasDuplicates;
+        }
+
+
+        public int HasOneTopSiteManager(List<Position>? positions) {
+            if (positions == null || positions.Count == 0) {
+                return 0; // No positions means no top site manager
+            }
+
+            var topSiteManagers = positions
+                .Where(p => p != null && !string.IsNullOrWhiteSpace(p.TopSiteManager))
+                .Select(p => p.TopSiteManager)
+                .Count();
+
+            return topSiteManagers;
+        }
+
+
          
+
+
     }
 }

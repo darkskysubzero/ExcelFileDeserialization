@@ -80,6 +80,9 @@
 
 
     </TelerikGrid>
+
+
+
 </div>
 
 
@@ -91,6 +94,7 @@
     public ObservableCollection<BatchEditModel> GridData { get; set; } = new ObservableCollection<BatchEditModel>();
     public List<BatchEditModel> DataToUpdate { get; set; } = new List<BatchEditModel>();
 
+    public Dictionary<int, string>? DataErrors { get; set; }
     public string ErrorMessage { get; set; } = string.Empty;
 
 
@@ -159,6 +163,17 @@
             GridData = listOfBatchItems;
             DataToUpdate = listOfBatchItems.ToList();
 
+            // Accessing data errors
+            DataErrors = response.DataErrors;
+
+            if (DataErrors.Any()) {
+                foreach(var d in DataErrors) {
+                    Console.WriteLine(d.Key + " " + d.Value);
+                }
+            }
+
+            // Is File Valid
+            Console.WriteLine("File Valid : "+response.IsFileValid);
 
             // Accessing completion time
             double completionTime = response.CompletionTime;
