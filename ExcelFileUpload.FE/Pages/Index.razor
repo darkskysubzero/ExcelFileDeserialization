@@ -44,7 +44,29 @@
 
              
         <GridColumns>
+
+
             <GridCheckboxColumn />
+
+            <GridColumn  Width="50px">
+                <Template Context="context">
+                    @{
+                        var position = context as BatchEditModel;
+                        var positionId = position.Id;
+                        var error = DataErrors.ContainsKey(positionId) ? DataErrors[positionId] : null;
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(error)) {
+                        <p style="text-align:center;" data-positionId="@positionId" class=" tooltip-target">🔴</p>
+                    }
+                    else {
+                        <p style="text-align:center;">🟢</p>
+                    }
+                </Template>
+            </GridColumn>
+
+            
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "Id"))" Field="@nameof(BatchEditModel.Id)" Title="Id" Width="50px" />
             <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "OrgNumber"))" Field="@nameof(BatchEditModel.OrgNumber)" Title="Org Number" Width="150px" />
             <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "Client"))" Field="@nameof(BatchEditModel.Client)" Title="Client" Width="150px" />
             <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "Site"))" Field="@nameof(BatchEditModel.Site)" Title="Site" Width="150px" />
@@ -68,7 +90,21 @@
             <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "PositionType"))" Field="@nameof(BatchEditModel.PositionType)" Title="Position Type" Width="150px" />
             <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "PositionActiveDate"))" Field="@nameof(BatchEditModel.PositionActiveDate)" Title="Position Active Date" Width="150px" />
             <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "PoolManager"))" Field="@nameof(BatchEditModel.PoolManager)" Title="Pool Manager" Width="150px" />
-            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "TopSiteManager"))" Field="@nameof(BatchEditModel.TopSiteManager)" Title="Top Site Manager" Width="150px" />
+            <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "TopSiteManager"))" Field="@nameof(BatchEditModel.TopSiteManager)" Title="Top Site Manager" Width="200px" >
+                <HeaderTemplate>
+                    @{
+
+                        <span>Top Site Manager</span>
+                        if (DataErrors != null){
+                            var error = DataErrors.ContainsKey(-1) ? DataErrors[-1] : null;
+                            @if (!string.IsNullOrWhiteSpace(error)) {
+                                <span style="text-align:center;" class=" tooltip-target" data-positionId="-1">🔴</span>
+                            }
+                        }
+          
+                    }
+                </HeaderTemplate>
+            </GridColumn>
             <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "PrismaUser"))" Field="@nameof(BatchEditModel.PrismaUser)" Title="Prisma User" Width="150px" />
             <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "EmailToCreatePrismaUsers"))" Field="@nameof(BatchEditModel.EmailToCreatePrismaUsers)" Title="Email To Create Prisma Users" Width="150px" />
             <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "ConfirmAttendance"))" Field="@nameof(BatchEditModel.ConfirmAttendance)" Title="Confirm Attendance" Width="150px" />
@@ -77,6 +113,7 @@
             <GridColumn OnCellRender="@((GridCellRenderEventArgs args)=> OnCellRenderHandler(args, "MHERequest"))" Field="@nameof(BatchEditModel.MHERequest)" Title="MHE Request" Width="150px" />
 
         </GridColumns>
+         
 
 
     </TelerikGrid>
@@ -84,6 +121,33 @@
 
 
 </div>
+
+
+<TelerikTooltip TargetSelector=".tooltip-target" Width="250px" Height="auto" Position="@TooltipPosition.Right" Class="highlight-tooltip">
+    <Template Context="ttipContext">
+        @{
+            int positionId = int.Parse(ttipContext.DataAttributes?["positionid"] ?? string.Empty);
+            var error = DataErrors.ContainsKey(positionId) ? DataErrors[positionId] : null;
+              
+
+                @if (!string.IsNullOrWhiteSpace(error)){
+                // Split the error string by comma and trim each part
+                var errorParts = error.Split(',')
+                                        .Select(part => part.Trim())
+                                        .Where(part => !string.IsNullOrWhiteSpace(part))
+                                        .ToList();
+
+                    // Display the error parts in a bullet list
+                    <ol style="display:flex; flex-direction:column; gap:1rem;">
+                        @foreach (var part in errorParts) {
+                            <li>@part</li>
+                        }
+                    </ol>
+                }
+                 
+        }
+    </Template>
+</TelerikTooltip>
 
 
 @code {
@@ -166,12 +230,6 @@
             // Accessing data errors
             DataErrors = response.DataErrors;
 
-            if (DataErrors.Any()) {
-                foreach(var d in DataErrors) {
-                    Console.WriteLine(d.Key + " " + d.Value);
-                }
-            }
-
             // Is File Valid
             Console.WriteLine("File Valid : "+response.IsFileValid);
 
@@ -231,5 +289,13 @@
         filter: grayscale(0.1);
         pointer-events: none;
         box-shadow: none;
+    }
+     
+
+    .highlight-tooltip .k-tooltip {
+        border: 2px solid red;
+        background: #fff;
+        color: #000;
+        padding: 1rem !important;
     }
 </style>

@@ -210,9 +210,9 @@ namespace ExcelFileUpload.API.Repository {
 
             // Checking if it has 1 topsite manager
             if (HasOneTopSiteManager(positions)>1) {
-                errors.Add(-1, "More than one TopSiteManager, can only have one!");
+                errors.Add(-1, "Can only have one Top Site Manager!");
             }else if (HasOneTopSiteManager(positions) == 0) {
-                errors.Add(-1, "Missing TopSiteManager");
+                errors.Add(-1, "No Top Site Manager!");
             }
 
 
